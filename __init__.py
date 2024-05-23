@@ -1,81 +1,44 @@
-from flask import Flask, render_template_string, render_template, jsonify, request, redirect, url_for, session
-from flask import render_template
-from flask import json
-from urllib.request import urlopen
-from werkzeug.utils import secure_filename
+from flask import Flask, request, render_template, redirect, url_for, session
 import sqlite3
 
-app = Flask(__name__)                                                                                                                  
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
+app = Flask(__name__)
+app.secret_key = 'votre_clé_secrète'
 
-# Fonction pour créer une clé "authentifie" dans la session utilisateur
-def est_authentifie():
-    return session.get('authentifie')
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
-@app.route('/')
-def hello_world():
-    return render_template('hello.html') #comm2
+@app.route('/fiche_nom/', methods=['GET', 'POST'])
+def fiche_nom():
+    if 'user' not in session:
+        return redirect(url_for('login_user'))
 
-@app.route('/lecture')
-def lecture():
-    if not est_authentifie():
-        # Rediriger vers la page d'authentification si l'utilisateur n'est pas authentifié
-        return redirect(url_for('authentification'))
-
-  # Si l'utilisateur est authentifié
-    return "<h2>Bravo, vous êtes authentifié</h2>"
-
-@app.route('/authentification', methods=['GET', 'POST'])
-def authentification():
     if request.method == 'POST':
-        # Vérifier les identifiants
-        if request.form['username'] == 'admin' and request.form['password'] == 'password': # password à cacher par la suite
-            session['authentifie'] = True
-            # Rediriger vers la route lecture après une authentification réussie
-            return redirect(url_for('lecture'))
-        else:
-            # Afficher un message d'erreur si les identifiants sont incorrects
-            return render_template('formulaire_authentification.html', error=True)
+        nom = request.form['nom']
+        conn = get_db_connection()
+        client = conn.execute('SELECT * FROM clients WHERE nom = ?', (nom,)).fetchone()
+        conn.close()
+        if client is None:
+            return 'Client non trouvé!'
+        return render_template('fiche_nom.html', client=client)
+    return render_template('recherche_nom.html')
 
-    return render_template('formulaire_authentification.html', error=False)
+@app.route('/login_user', methods=['GET', 'POST'])
+def login_user():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == 'user' and password == '12345':
+            session['user'] = username
+            return redirect(url_for('fiche_nom'))
+        return 'Login échoué!'
+    return render_template('login_user.html')
 
-@app.route('/fiche_client/<int:post_id>')
-def Readfiche(post_id):
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clients WHERE id = ?', (post_id,))
-    data = cursor.fetchall()
-    conn.close()
-    # Rendre le template HTML et transmettre les données
-    return render_template('read_data.html', data=data)
+@app.route('/logout_user')
+def logout_user():
+    session.pop('user', None)
+    return redirect(url_for('login_user'))
 
-@app.route('/consultation/')
-def ReadBDD():
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clients;')
-    data = cursor.fetchall()
-    conn.close()
-    return render_template('read_data.html', data=data)
-
-@app.route('/enregistrer_client', methods=['GET'])
-def formulaire_client():
-    return render_template('formulaire.html')  # afficher le formulaire
-
-@app.route('/enregistrer_client', methods=['POST'])
-def enregistrer_client():
-    nom = request.form['nom']
-    prenom = request.form['prenom']
-
-    # Connexion à la base de données
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-
-    # Exécution de la requête SQL pour insérer un nouveau client
-    cursor.execute('INSERT INTO clients (created, nom, prenom, adresse) VALUES (?, ?, ?, ?)', (1002938, nom, prenom, "ICI"))
-    conn.commit()
-    conn.close()
-    return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
-                                                                                                                                       
-if __name__ == "__main__":
-  app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
