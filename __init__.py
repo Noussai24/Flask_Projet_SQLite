@@ -79,3 +79,16 @@ def enregistrer_client():
                                                                                                                                        
 if __name__ == "__main__":
   app.run(debug=True)
+    @app.route('/fiche_nom/', methods=['GET', 'POST'])
+
+def fiche_nom():
+    if request.method == 'POST':
+        nom = request.form['nom']
+        conn = sqlite3.connect('database.db')
+        client = conn.execute('SELECT * FROM clients WHERE nom = ?', (nom,)).fetchone()
+        conn.close()
+        if client is None:
+            return 'Client non trouvé!'
+        return render_template('fiche_nom.html', client=client)
+    return render_template('recherche_nom.html')
+
