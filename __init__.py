@@ -81,6 +81,8 @@ if __name__ == "__main__":
   app.run(debug=True)
     @app.route('/fiche_nom/', methods=['GET', 'POST'])
 
+# Nouvelle route ajoutée
+@app.route('/fiche_nom/', methods=['GET', 'POST'])
 def fiche_nom():
     if request.method == 'POST':
         nom = request.form['nom']
@@ -92,3 +94,5 @@ def fiche_nom():
         return render_template('fiche_nom.html', client=client)
     return render_template('recherche_nom.html')
 
+if __name__ == "__main__":
+  app.run(debug=True)
