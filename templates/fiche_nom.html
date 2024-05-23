@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fiche Client</title>
+</head>
+<body>
+    <h1>Fiche Client</h1>
+    <p>Nom: {{ client.nom }}</p>
+    <p>Prénom: {{ client.prenom }}</p>
+    <p>Email: {{ client.email }}</p>
+    <p>Téléphone: {{ client.telephone }}</p>
+    <a href="{{ url_for('fiche_nom') }}">Rechercher un autre client</a>
+</body>
+</html>
