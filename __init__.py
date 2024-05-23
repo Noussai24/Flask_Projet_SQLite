@@ -76,10 +76,6 @@ def enregistrer_client():
     conn.commit()
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
-                                                                                                                                       
-if __name__ == "__main__":
-  app.run(debug=True)
-    @app.route('/fiche_nom/', methods=['GET', 'POST'])
 
 # Nouvelle route ajoutée
 @app.route('/fiche_nom/', methods=['GET', 'POST'])
@@ -95,4 +91,4 @@ def fiche_nom():
     return render_template('recherche_nom.html')
 
 if __name__ == "__main__":
-  app.run(debug=True)
+    app.run(debug=True)
